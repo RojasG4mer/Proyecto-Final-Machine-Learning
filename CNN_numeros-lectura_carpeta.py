@@ -8,13 +8,14 @@ Created on Mon Nov 27 21:30:17 2023
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import tensorflow as tf
-#import tensorflow.compat.v1 as tf
 import tensorflow_datasets as tfds
 
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
+from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten
+
 logger = tf.get_logger()
 
 logger.setLevel(logging.ERROR)
