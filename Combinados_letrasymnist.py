@@ -34,13 +34,13 @@ model_combined.save('modelo_combinado.h5')
 ############### Viendo resultados del modelo
 
 # Ruta de la carpeta que contiene tus imágenes
-folder_path = 'C:\\Users\\PC\\Desktop\\Universidad\\Machine Learning\\Proyecto_final\\numeros_computadora'
+folder_path = 'C:\\Users\\PC\\Desktop\\Universidad\\Machine Learning\\Proyecto_final\\pruebas'
 
 # Obtener la lista de archivos en la carpeta
 image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
-class_names = ['a', 'e', 'i', 'o', 'u', 'Cero', 'Uno', 'Dos', 'Tres', 'Cuatro',
-               'Cinco', 'Seis', 'Siete', 'Ocho', 'Nueve'
+class_names = ['a', 'e', 'i', 'o', 'u', '0', '1', '2', '3', '4',
+               '5', '6', '7', '8', '9'
 ]
 
 # Crear una figura con subgráficos dinámicamente según la cantidad de imágenes
