@@ -132,4 +132,7 @@ for i, image_file in enumerate(image_files):
 fig.set_size_inches(2 * num_cols, 4 * num_rows)
 
 plt.tight_layout()
+plt.savefig('Prueba_numeros.jpg')
 plt.show()
+
+

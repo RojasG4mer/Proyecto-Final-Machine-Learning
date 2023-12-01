@@ -138,7 +138,10 @@ for i, image_file in enumerate(image_files):
     # Ajustar el tamaño de la figura
     fig.set_size_inches(2 * num_cols, 4 * num_rows)
 
+plt.savefig('Prueba_vocales.jpg')
 plt.tight_layout()
 plt.show()
+
+
 
 
