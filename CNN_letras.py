@@ -2,6 +2,15 @@
 """
 Created on Tue Nov 28 12:12:46 2023
 @author: Rojas Martinez Jonathan Francisco
+
+class_names = [
+    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+    "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F",
+    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
+    "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ",", ";",
+    ":", "?", "!", ".", "@",  "#", "$", "%", "&", "(", ")", "{", "}", "[", "]"
+]
+
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
@@ -14,41 +23,48 @@ import os
 from PIL import Image
 
 
-
 # Ruta principal que contiene las carpetas 1, 2, ..., 79
-data_dir = "C:\\Users\\PC\\Desktop\\Universidad\\Machine Learning\\Proyecto_final\\English Alphabet Dataset"
+data_dir = "C:\\Users\\PC\\Desktop\\Universidad\\Machine Learning\\Proyecto_final\\letras_computadora"
 
-class_names = [
-    "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
-    "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", "A", "B", "C", "D", "E", "F",
-    "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V",
-    "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0", ",", ";",
-    ":", "?", "!", ".", "@",  "#", "$", "%", "&", "(", ")", "{", "}", "[", "]"
-]
+class_names = ['a', 'e', 'i', 'o', 'u']
+
+
 ## Parametros modificables
 batch_size = 32
 epocas = 8
+seed = 42
 
+# Definir una función de normalización
+def normalize_image(image):
+    image = tf.cast(image, tf.float32)
+    image /= 255
+    return image
 
-# Crear generadores de datos de entrenamiento y validación
-datagen_letters = ImageDataGenerator(rescale=1./255, validation_split=0.2)
+# Crear generadores de datos de entrenamiento y validación con normalización incorporada
+datagen_letters = ImageDataGenerator(
+    rescale=1./255,
+    validation_split=0.2,
+    preprocessing_function=normalize_image  # Aquí se aplica la normalización
+)
 
 train_generator_letters = datagen_letters.flow_from_directory(
     data_dir,
     target_size=(28, 28),
     batch_size=batch_size,
-    color_mode='rgb',  # Cambiado a formato RGB
+    color_mode='rgb',
     class_mode='categorical',
-    subset='training'
+    subset='training',
+    seed=seed
 )
 
 validation_generator_letters = datagen_letters.flow_from_directory(
     data_dir,
     target_size=(28, 28),
     batch_size=batch_size,
-    color_mode='rgb',  # Cambiado a formato RGB
+    color_mode='rgb',
     class_mode='categorical',
-    subset='validation'
+    subset='validation',
+    seed=seed
 )
 
 # Estructura de la red neuronal convolucional (CNN)
@@ -76,10 +92,13 @@ model_cnn.fit(
     validation_data=validation_generator_letters
 )
 
+## Guardamos el modelo de las vocales
+model_cnn.save('modelo_vocales001.h5')
+
 
 
 # Realizar la predicción
-folder_path = 'C:\\Users\\PC\\Desktop\\Universidad\\Machine Learning\\Proyecto_final\\letras_computadora'
+folder_path = 'C:\\Users\\PC\\Desktop\\Universidad\\Machine Learning\\Proyecto_final\\pruebas'
 image_files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))]
 
 # Crear una figura con subgráficos dinámicamente según la cantidad de imágenes
@@ -121,3 +140,5 @@ for i, image_file in enumerate(image_files):
 
 plt.tight_layout()
 plt.show()
+
+

@@ -6,21 +6,24 @@ Created on Mon Nov 27 21:30:17 2023
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-
 import tensorflow as tf
 import tensorflow_datasets as tfds
-
 import math
 import numpy as np
 import matplotlib.pyplot as plt
 import logging
 from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten
 
-logger = tf.get_logger()
+# Establecer la semilla para TensorFlow y NumPy
+seed = 42
+tf.random.set_seed(seed)
+np.random.seed(seed)
 
+# Configurar el nivel de registro
+logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
 
-
+# Cargar el conjunto de datos MNIST
 dataset, metadata = tfds.load('mnist', as_supervised=True, with_info=True)
 train_dataset, test_dataset = dataset['train'], dataset['test']
 
@@ -34,6 +37,7 @@ num_test_examples = metadata.splits['test'].num_examples
 
 #Normalizar: Numeros de 0 a 255, que sean de 0 a 1
 def normalize(images, labels):
+    images = tf.repeat(images, 3, axis=-1)  # Duplica el canal único en tres canales RGB
     images = tf.cast(images, tf.float32)
     images /= 255
     return images, labels
@@ -43,10 +47,13 @@ test_dataset = test_dataset.map(normalize)
 
 #Estructura de la red
 model = tf.keras.Sequential([
-	tf.keras.layers.Flatten(input_shape=(28,28,1)),
-	tf.keras.layers.Dense(64, activation=tf.nn.relu),
-	tf.keras.layers.Dense(64, activation=tf.nn.relu),
-	tf.keras.layers.Dense(10, activation=tf.nn.softmax) #para clasificacion
+	Conv2D(32, (3, 3), activation='relu', input_shape=(28, 28, 3)),
+    MaxPooling2D(2, 2),
+    Conv2D(64, (3, 3), activation='relu'),
+    MaxPooling2D(2, 2),
+    Flatten(),
+    tf.keras.layers.Dense(64, activation='relu'),
+    tf.keras.layers.Dense(len(class_names), activation='softmax')
 ])
 
 #Indicar las funciones a utilizar
@@ -74,6 +81,9 @@ test_loss, test_accuracy = model.evaluate(
 
 print("Resultado en las pruebas: ", test_accuracy)
 
+#Guardamos el modelo de las letras
+model.save('modelo_numeros001.h5')
+
 
 import os
 from PIL import Image
@@ -93,9 +103,10 @@ fig, axes = plt.subplots(num_rows, num_cols, figsize=(2 * num_cols, 4 * num_rows
 for i, image_file in enumerate(image_files):
     # Cargar la imagen
     image_path = os.path.join(folder_path, image_file)
-    image = Image.open(image_path).convert('L')
+    image = Image.open(image_path).convert('RGB')  # Convertir a RGB
     image = image.resize((28, 28))
-    image_array = np.expand_dims(np.array(image), axis=0) / 255.0
+    image_array = np.array(image) / 255.0  # Sin necesidad de expand_dims para RGB
+    image_array = np.expand_dims(image_array, axis=0)  # Añadir dimensión de lote
 
     # Realizar la predicción
     predictions = model.predict(image_array)
@@ -122,6 +133,3 @@ fig.set_size_inches(2 * num_cols, 4 * num_rows)
 
 plt.tight_layout()
 plt.show()
-
-
-
