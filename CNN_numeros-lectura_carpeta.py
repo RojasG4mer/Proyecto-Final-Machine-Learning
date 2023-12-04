@@ -18,7 +18,7 @@ from tensorflow.keras.layers import Conv2D, MaxPooling2D, Flatten
 seed = 42
 tf.random.set_seed(seed)
 np.random.seed(seed)
-
+epocas = 5
 # Configurar el nivel de registro
 logger = tf.get_logger()
 logger.setLevel(logging.ERROR)
@@ -70,7 +70,7 @@ test_dataset = test_dataset.batch(BATCHSIZE)
 
 #Realizar el aprendizaje
 model.fit(
-	train_dataset, epochs=5,
+	train_dataset, epochs=epocas,
 	steps_per_epoch=math.ceil(num_train_examples/BATCHSIZE) #No sera necesario pronto
 )
 
@@ -80,6 +80,94 @@ test_loss, test_accuracy = model.evaluate(
 )
 
 print("Resultado en las pruebas: ", test_accuracy)
+
+
+from io import StringIO
+import sys
+model.summary()
+# Redirigir la salida estándar a un objeto StringIO
+buffer = StringIO()
+sys.stdout = buffer
+
+# Imprimir el resumen del modelo
+model.summary()
+
+# Restaurar la salida estándar
+sys.stdout = sys.__stdout__
+
+# Obtener el contenido del buffer como una cadena
+summary_str = buffer.getvalue()
+
+# Crear una imagen con el resumen
+fig, ax = plt.subplots()
+ax.text(0.1, 0.5, summary_str, wrap=True, fontsize=8, va='center')
+ax.axis('off')
+
+# Guardar la imagen
+plt.savefig('summary_image_numeros.png', format='png', bbox_inches='tight')
+plt.show()
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+
+# Crear conjuntos de entrenamiento y validación
+train_dataset = train_dataset.take(num_train_examples)
+validation_dataset = train_dataset.skip(num_train_examples)
+
+# Entrenar el modelo y almacenar el historial
+history = model.fit(
+    train_dataset,
+    epochs=epocas,
+    validation_data=validation_dataset
+)
+
+# Evaluar nuestro modelo ya entrenado contra el dataset de pruebas
+test_loss, test_accuracy = model.evaluate(
+    test_dataset, steps=math.ceil(num_test_examples/BATCHSIZE)
+)
+
+print("Resultado en las pruebas: ", test_accuracy)
+
+# Obtener las etiquetas reales del conjunto de pruebas
+true_labels = np.concatenate([y for x, y in test_dataset], axis=0)
+
+# Obtener las probabilidades predichas para el conjunto de pruebas
+predicted_probs = model.predict(test_dataset)
+
+# Obtener las etiquetas predichas tomando la clase con la probabilidad más alta
+predicted_labels = np.argmax(predicted_probs, axis=1)
+
+# Crear la matriz de confusión
+conf_matrix = confusion_matrix(true_labels, predicted_labels)
+
+# Obtener accuracy y loss del historial de entrenamiento
+accuracy = history.history['accuracy'][-1]
+loss = history.history['loss'][-1]
+
+# Configurar el estilo de la visualización
+sns.set(font_scale=1.2)
+plt.figure(figsize=(10, 8))
+
+# Crear el mapa de calor con seaborn
+sns.heatmap(conf_matrix, annot=True, fmt='g', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+
+# Añadir etiquetas y título
+plt.xlabel('Predicciones')
+plt.ylabel('Etiquetas Verdaderas')
+plt.title('Matriz de Confusión Numeros')
+
+# Añadir anotaciones para accuracy y loss
+#plt.annotate(f'Accuracy: {accuracy:.4f}', xy=(0.5, -0.15), ha='center', va='center', fontsize=12)
+#plt.annotate(f'Loss: {loss:.4f}', xy=(0.5, -0.20), ha='center', va='center', fontsize=12)
+
+# Guardar la figura como una imagen
+plt.savefig('confusion_matrix_numeros.png', format='png')
+plt.show()
+
+
+
 
 #Guardamos el modelo de las letras
 model.save('modelo_numeros001.h5')

@@ -92,8 +92,94 @@ model_cnn.fit(
     validation_data=validation_generator_letters
 )
 
+from io import StringIO
+import sys
+model_cnn.summary()
+# Redirigir la salida estándar a un objeto StringIO
+buffer = StringIO()
+sys.stdout = buffer
+
+# Imprimir el resumen del modelo
+model_cnn.summary()
+
+# Restaurar la salida estándar
+sys.stdout = sys.__stdout__
+
+# Obtener el contenido del buffer como una cadena
+summary_str = buffer.getvalue()
+
+# Crear una imagen con el resumen
+fig, ax = plt.subplots()
+ax.text(0.1, 0.5, summary_str, wrap=True, fontsize=8, va='center')
+ax.axis('off')
+
+# Guardar la imagen
+plt.savefig('summary_image.png', format='png', bbox_inches='tight')
+plt.show()
+
+
+import seaborn as sns
+import matplotlib.pyplot as plt
+from sklearn.metrics import confusion_matrix
+
+# Entrenar el modelo y almacenar el historial
+history = model_cnn.fit(
+    train_generator_letters,
+    epochs=epocas,
+    validation_data=validation_generator_letters
+)
+
+
+# Obtener las etiquetas reales del conjunto de validación
+true_labels = validation_generator_letters.classes
+# Obtener las probabilidades predichas para el conjunto de validación
+predicted_probs = model_cnn.predict_generator(validation_generator_letters)
+
+# Obtener las etiquetas predichas tomando la clase con la probabilidad más alta
+predicted_labels = np.argmax(predicted_probs, axis=1)
+
+
+# Obtener accuracy y loss del historial de entrenamiento
+accuracy = history.history['accuracy'][-1]
+loss = history.history['loss'][-1]
+
+# Crear la matriz de confusión
+conf_matrix = confusion_matrix(true_labels, predicted_labels)
+
+# Configurar el estilo de la visualización
+sns.set(font_scale=1.2)
+plt.figure(figsize=(10, 8))
+
+# Configurar el estilo de la visualización
+sns.set(font_scale=1.2)
+plt.figure(figsize=(8, 6))
+
+# Crear el mapa de calor con seaborn
+sns.heatmap(conf_matrix, annot=True, fmt='g', cmap='Blues', xticklabels=class_names, yticklabels=class_names)
+
+# Añadir etiquetas y título
+plt.xlabel('Predicciones')
+plt.ylabel('Etiquetas Verdaderas')
+plt.title('Matriz de Confusión vocales')
+
+# Añadir anotaciones para accuracy y loss
+plt.annotate(f'Accuracy: {accuracy:.4f}', xy=(0.5, -0.15), ha='center', va='center', fontsize=12)
+plt.annotate(f'Loss: {loss:.4f}', xy=(0.5, -0.20), ha='center', va='center', fontsize=12)
+
+
+# Guardar la figura como una imagen
+plt.savefig('confusion_matrix.png', format='png')
+plt.show()
+
+
 ## Guardamos el modelo de las vocales
 model_cnn.save('modelo_vocales001.h5')
+
+
+
+
+
+
 
 
 
